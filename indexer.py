@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 
 client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
-# db=client.business
+db=client.tags
 # names = ['Kitchen','Animal','State', 'Tastey', 'Big','City','Fish', 'Pizza','Goat', 'Salty','Sandwich','Lazy', 'Fun']
 # company_type = ['LLC','Inc','Company','Corporation']
 # company_cuisine = ['Pizza', 'Bar Food', 'Fast Food', 'Italian', 'Mexican', 'American', 'Sushi Bar', 'Vegetarian']
@@ -24,27 +24,34 @@ client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.ne
 # #Step 5: Tell us that you are done
 # print('finished creating 500 business reviews')
 
-def tagparse(data):
+def tagparse(data,priority):
     lst_tags = {}
     try:
         for i in data:
             for j in i.text.strip().split(' '):
                 if len(j) >= 4:
-                    lst_tags[j.lower()] = ''
+                    if lst_tags.get(j.lower):
+                        x = lst_tags[j.lower()]/priority+1
+                        lst_tags[j.lower()] = x*priority
+                    else:
+                        lst_tags[j.lower()] = 1*priority
                 else:
                     pass
         
-        return list(lst_tags.keys())
+        return lst_tags
 
     except:
         return None
 
-def htmlparser(soup, url):
-    priorities = {
-        1:tagparse(soup.findAll('h1')),
-        3:tagparse(soup.findAll('p'))
-                }
-    print(priorities)
+def htmlparser(soup, url, changes):
+    priorities = [
+        tagparse(soup.findAll('h1'), 10), tagparse(soup.findAll('h2'), 9), tagparse(soup.findAll('p'), 8), tagparse(soup.findAll('h3'), 9), tagparse(soup.findAll('li'), 6), tagparse(soup.findAll('b'), 8)
+    ]
+    
+    words = {
+
+    }
+    # print(priorities)
 
 r = requests.get("https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/",timeout=(2,5))
 soup = BeautifulSoup(r.content, 'lxml')
