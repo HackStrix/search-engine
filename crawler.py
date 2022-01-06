@@ -1,5 +1,4 @@
 from multiprocessing import pool
-# from sre_constants import error
 from bs4 import BeautifulSoup
 import re
 import requests
@@ -14,6 +13,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import indexer
 from threading import Thread
 import pprint
+# from numba import jit, cuda
 # import lxml before running
 
 # make a cache pool(temporary storage) which stores the html tags of the website. We keep this so that the indexer can access it and do text analysis.
@@ -24,8 +24,17 @@ cache_pool = Queue(maxsize=10000)
 unique = dict()
 
 
-root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
-            "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
+# root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+#             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
+# root_url=["geeksforgeeks.org"]
+
+import csv
+
+with open('seed_url.csv', newline='') as f:
+    reader = csv.reader(f)
+    root_url = ["https://"+row[0] for row in reader]
+# print(data)
+# print(1+"aa")
 for i in root_url:
     q.put(i)
 
@@ -35,15 +44,15 @@ for i in root_url:
 start_time = time.time()
 seconds = 120
 
-rp = Robot.RobotFileParser()
 
+# @jit(target="cuda")
 def check(url):
     global unique
     if is_valid_url(url):
         link = urlparse(url)
         domain = link.netloc
         host = link.path
-
+        # print(url)
         if unique.get(domain):
             try:
                 unique[domain][host]+= 1
@@ -80,19 +89,32 @@ def all_url(root_url):
         link = urlparse(root_url)
         # print("1")
         domain = link.netloc
-        # print("2")
+        # print("domain")
         scheme = link.scheme
-        # print("3")
-        rp.set_url(scheme + '://' + domain + '/robots.txt')
+        # print("scheme")
+        combined_str = scheme + '://' + domain + '/robots.txt'
+        # print(combined_str)
+        rp = Robot.RobotFileParser()
+        rp.set_url(combined_str)
+        # print("hello")
+        try:
+            # print("his")
+            rp.read()
+            # print("how")
+            boolean = rp.can_fetch("*",root_url)
+        except:
+            # print("helloo")
+            boolean=True
         # print("4")
-        if not rp.can_fetch("*",root_url):
-            # print("5")
-            r = requests.get(root_url, timeout=(2, 5))
-            soup = BeautifulSoup(r.content, 'lxml')
+        # print(boolean)
+        if boolean:
+            r = requests.get(root_url, timeout=(3, 5))
+            # print(r)
+            soup = BeautifulSoup(r.content, 'lxml',from_encoding="iso-8859-1")
             cache_pool.put([soup, root_url])
             fill = soup.findAll('a')
             lst = []
-
+            # print(fill)
             for i in fill:
                 lst.append(i.get('href'))
 
@@ -113,7 +135,7 @@ def all_url(root_url):
                 else:
                     pass
         else: 
-            print('not allowed')
+            # print('not allowed')
             pass
     except:
         # print("e")
@@ -125,18 +147,20 @@ def all_url(root_url):
 
 
 def print_results():
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(unique)
-    print(len(unique))
-    print(q.qsize())
-    print(sys.getsizeof(unique))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(unique)
+    # print(len(unique))
+    print("queue size :"+str(q.qsize()))
+    print("memory :"+str(sys.getsizeof(unique)))
+    print("cachepool :"+str(cache_pool.qsize()))
+    print("changes :"+str(changes.qsize()))
 
 
 def main_init():
     while True:
         current_time = time.time()
         elapsed_time = current_time - start_time
-
+        # print(int(elapsed_time),end='\r')
         if elapsed_time > seconds:
             break
 
@@ -144,9 +168,13 @@ def main_init():
             pass
             # print("Empty")
         else:
-            print("running",end="\r")
+            
             all_url(q.get())
-            print("yes",end='\r')
+            print('domains crawled : %10s %1s'%(str(len(unique)),"|"),end="\r")
+            print('domains crawled : %10s %1s'%(str(len(unique)),"/"),end="\r")
+            print('domains crawled : %10s %1s'%(str(len(unique)),"-"),end="\r")
+            # print(str(len(unique))+"   /",end="\r")
+            # print(str(len(unique))+"   -",end="\r")
 
 
 def indexing():
@@ -156,7 +184,7 @@ def indexing():
         if cache_pool.empty() == False:
             element = cache_pool.get()
             indexer.htmlparser(element[0], element[1], changes)
-        elif elapsed_time > seconds + 30:
+        elif elapsed_time > seconds + 3:
             print_results()
             break
         else:
@@ -174,18 +202,23 @@ def indexing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 10
+num_threads = 20
+threads = []
 for i in range(num_threads):
     for j in range(30):
         t1 = Thread(target=main_init)
+        # t1.setDaemon(True)
+        threads.append(t1)
         t1.start()
     t2 = Thread(target=indexing)
-    # t1.setDaemon(True)
-    # t2.setDaemon(True)
-
+    threads.append(t2)
+    t2.setDaemon(True)
     t2.start()
 
-# print_results()
-
+# for x in threads:
+#     x.join()
+#     pp = pprint.PrettyPrinter(indent=4)
+#     pp.pprint(unique)
 # t1.close()
 # t2.close()
+

@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+# from pymongo import MongoClient
 from random import randint
 import requests
 from bs4 import BeautifulSoup
@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 # for debugging
 from pprint import pprint
 
-client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
-db=client.tags
+# client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+# db=client.tags
 # names = ['Kitchen','Animal','State', 'Tastey', 'Big','City','Fish', 'Pizza','Goat', 'Salty','Sandwich','Lazy', 'Fun']
 # company_type = ['LLC','Inc','Company','Corporation']
 # company_cuisine = ['Pizza', 'Bar Food', 'Fast Food', 'Italian', 'Mexican', 'American', 'Sushi Bar', 'Vegetarian']
@@ -56,4 +56,4 @@ def htmlparser(soup, url, changes):
 r = requests.get("https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/",timeout=(2,5))
 soup = BeautifulSoup(r.content, 'lxml')
 
-htmlparser(soup, "sdkfvhsakh")
+htmlparser(soup, "sdkfvhsakh", None)
