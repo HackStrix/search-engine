@@ -147,8 +147,8 @@ def all_url(root_url):
 
 
 def print_results():
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(unique)
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(unique)
     # print(len(unique))
     print("queue size :"+str(q.qsize()))
     print("memory :"+str(sys.getsizeof(unique)))
@@ -202,7 +202,7 @@ def indexing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 20
+num_threads = 10
 threads = []
 for i in range(num_threads):
     for j in range(30):
