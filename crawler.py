@@ -29,22 +29,22 @@ unique = dict()
 # db.domains.create_index("url",unique=True)
 
 
-root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
-            "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
-# root_url=["geeksforgeeks.org"]
-for i in root_url:
-    q.put(i)
-# import csv
-
-# with open('seed_url.csv', newline='') as f:
-#     reader = csv.reader(f)
-#     root_url = ["https://"+row[0] for row in reader]
-# # print(data)
-# # print(1+"aa")
+# root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+#             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
+# # root_url=["geeksforgeeks.org"]
 # for i in root_url:
 #     q.put(i)
+import csv
 
-# q.put(root_url[1])
+with open('seed_url.csv', newline='') as f:
+    reader = csv.reader(f)
+    root_url = ["https://"+row[0] for row in reader]
+# print(data)
+# print(1+"aa")
+for i in root_url:
+    q.put(i)
+
+q.put(root_url[1])
 
 
 start_time = time.time()
@@ -66,9 +66,9 @@ def check(url):
                 changes.put([domain, unique[domain]['__0__'], "upd"])
                 return False
             except KeyError:
-                unique[domain]['__0__']+=1
+                # unique[domain]['__0__']+=1
                 unique[domain][host] = 1
-                changes.put([domain, unique[domain]['__0__',],"upd"])
+                changes.put([domain, unique[domain]['__0__'],"upd"])
         else:
             unique[domain] = {'__0__':1}
             # temp_dict = {host: 1}
@@ -193,13 +193,27 @@ def indexing():
         if cache_pool.empty() == False:
             element = cache_pool.get()
             indexer.htmlparser(element[0], element[1], changes.get())
+        elif elapsed_time > seconds + 30:
+            print_results()
+            break
+        else:
+            pass
+            # print("Cache pool empty")
+def changing():
+    while True:
+        current_time = time.time()
+        elapsed_time = current_time - start_time
+        if elapsed_time <= seconds + 300:
+            print('Changes Left : %10s %1s'%(str(changes.qsize()),"*"),end="\r\t\t\t\t\t")
+            if changes.empty() == False:
+                element = changes.get()
+                indexer.changes(element)
         elif elapsed_time > seconds + 300:
             print_results()
             break
         else:
             pass
             # print("Cache pool empty")
-
 
 # def pooling():
 #     pool_size = 100  # your "parallelness"
@@ -211,11 +225,11 @@ def indexing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 100
+num_threads = 10
 threads = []
 for i in range(num_threads):
-    for j in range(1):
-        t1 = Thread(target=indexing)
+    for j in range(30):
+        t1 = Thread(target=changing)
         # t1.setDaemon(True)
         threads.append(t1)
         t1.start()

@@ -8,23 +8,44 @@ from queue import Queue
 
 # for debugging
 from pprint import pprint
-client = MongoClient('mongodb://localhost:27017/')
+# client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+
 db = client["web-map"]
 db.domains.create_index("url",unique=True)
-# con = psycopg2.connect(database="tags", user="postgres", password="password1234$", host="127.0.0.1", port="5432")
-
-# print("Database opened successfully")
-# cur = con.cursor()
-# cur.execute('''CREATE TABLE DOMAINS 
-#     (URL TEXT PRIMARY KEY NOT NULL,
-#     COUNT INT NOT NULL)
-# ''')
-# con.commit()
-# print("table created")
 
 
 
 
+def changes(lst):
+    if lst:
+        if lst[2] == "new":
+            try:
+                db["domains"].insert_one({
+                            "url": lst[0],
+                            "count": 1
+                        })
+                # print("n" + "\r")
+                
+                # if db["domains"].count_documents({"url" : lst[0]}) == 0:
+                    
+                # else:
+                #     print("r" + "\r")
+                    
+            except Exception as e:
+                db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+                # print('x',)
+        else:
+            try:
+                 db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+                #  print("u" + "\r")
+                #  print('y')
+            except Exception as e:
+                # print(e)
+                pass
+                
+    else:
+        pass
 
 
 def tagparse(data,priority):
@@ -51,34 +72,10 @@ def htmlparser(soup, url, lst):
     priorities = [
         tagparse(soup.findAll('h1'), 10), tagparse(soup.findAll('h2'), 9), tagparse(soup.findAll('p'), 8), tagparse(soup.findAll('h3'), 9), tagparse(soup.findAll('li'), 6), tagparse(soup.findAll('b'), 8)
     ]
-    if lst:
-        # print("lol")
-        if lst[2] == "new":
-            # print("lols")
-            try:
-                db["domains"].insert_one({
-                            "url": lst[0],
-                            "count": 1
-                        })
-                print("r" + "\r")
-                
-                # if db["domains"].count_documents({"url" : lst[0]}) == 0:
-                    
-                # else:
-                #     print("r" + "\r")
-                    
-            except:
-                db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
-        else:
-            try:
-                 db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
-            except:
-                pass
-    else:
-        pass
+    
         
     words = {
-
+        
     }
     # print(priorities)
 
