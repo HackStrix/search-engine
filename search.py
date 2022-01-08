@@ -47,3 +47,5 @@ print(end-start)
 # end=time.now()
 # print(end-start)
 # print(y)
+# print(z)
+
