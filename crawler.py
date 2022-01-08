@@ -29,26 +29,27 @@ unique = dict()
 # db.domains.create_index("url",unique=True)
 
 
-# root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
-#             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
-# # root_url=["geeksforgeeks.org"]
-# for i in root_url:
-#     q.put(i)
-import csv
-
-with open('seed_url.csv', newline='') as f:
-    reader = csv.reader(f)
-    root_url = ["https://"+row[0] for row in reader]
-# print(data)
-# print(1+"aa")
+root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+            "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
+# root_url=["geeksforgeeks.org"]
 for i in root_url:
     q.put(i)
+# import csv
 
-q.put(root_url[1])
+# with open('seed_url.csv', newline='') as f:
+#     reader = csv.reader(f)
+#     root_url = ["https://"+row[0] for row in reader]
+# # print(data)
+# # print(1+"aa")
+# for i in root_url:
+#     q.put(i)
+
+# q.put(root_url[1])
 
 
 start_time = time.time()
 seconds = 120
+words = dict()
 
 
 # @jit(target="cuda")
@@ -182,6 +183,7 @@ def main_init():
             print('domains crawled : %10s %1s'%(str(len(unique)),"|"),end="\r")
             print('domains crawled : %10s %1s'%(str(len(unique)),"/"),end="\r")
             print('domains crawled : %10s %1s'%(str(len(unique)),"-"),end="\r")
+
             # print(str(len(unique))+"   /",end="\r")
             # print(str(len(unique))+"   -",end="\r")
 
@@ -190,14 +192,13 @@ def indexing():
     while True:
         current_time = time.time()
         elapsed_time = current_time - start_time
-        if cache_pool.empty() == False:
-            element = cache_pool.get()
-            indexer.htmlparser(element[0], element[1], changes.get())
-        elif elapsed_time > seconds + 30:
+        if elapsed_time < seconds + 300:
+            if cache_pool.empty() == False:
+                element = cache_pool.get()
+                indexer.htmlparser(element[0], element[1])
+        else:
             print_results()
             break
-        else:
-            pass
             # print("Cache pool empty")
 def changing():
     while True:
@@ -230,9 +231,10 @@ threads = []
 for i in range(num_threads):
     for j in range(30):
         t1 = Thread(target=changing)
-        # t1.setDaemon(True)
+        t3 = Thread(target=indexing)
         threads.append(t1)
         t1.start()
+        t3.start()
     t2 = Thread(target=main_init)
     threads.append(t2)
     t2.setDaemon(True)
