@@ -1,5 +1,6 @@
-from pymongo import MongoClient
+
 # import psycopg2
+from pymongo import MongoClient
 from random import randint
 import requests
 from bs4 import BeautifulSoup
@@ -7,7 +8,9 @@ from queue import Queue
 
 # for debugging
 from pprint import pprint
-
+client = MongoClient('mongodb://localhost:27017/')
+db = client["web-map"]
+db.domains.create_index("url",unique=True)
 # con = psycopg2.connect(database="tags", user="postgres", password="password1234$", host="127.0.0.1", port="5432")
 
 # print("Database opened successfully")
@@ -19,8 +22,8 @@ from pprint import pprint
 # con.commit()
 # print("table created")
 
-client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
-db = client["domains"]
+
+
 
 
 
@@ -43,13 +46,37 @@ def tagparse(data,priority):
     except:
         return None
 
-def htmlparser(soup, url, changes):
+def htmlparser(soup, url, lst):
+    # print("running")
     priorities = [
         tagparse(soup.findAll('h1'), 10), tagparse(soup.findAll('h2'), 9), tagparse(soup.findAll('p'), 8), tagparse(soup.findAll('h3'), 9), tagparse(soup.findAll('li'), 6), tagparse(soup.findAll('b'), 8)
     ]
-    while changes.empty() == False:
-        lst = changes.get()
-        # if db["url"]
+    if lst:
+        # print("lol")
+        if lst[2] == "new":
+            # print("lols")
+            try:
+                db["domains"].insert_one({
+                            "url": lst[0],
+                            "count": 1
+                        })
+                print("r" + "\r")
+                
+                # if db["domains"].count_documents({"url" : lst[0]}) == 0:
+                    
+                # else:
+                #     print("r" + "\r")
+                    
+            except:
+                db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+        else:
+            try:
+                 db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+            except:
+                pass
+    else:
+        pass
+        
     words = {
 
     }

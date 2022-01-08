@@ -1,5 +1,6 @@
 from multiprocessing import pool
 from bs4 import BeautifulSoup
+from pymongo import MongoClient
 import re
 import requests
 import urllib.request
@@ -19,24 +20,29 @@ import pprint
 # make a cache pool(temporary storage) which stores the html tags of the website. We keep this so that the indexer can access it and do text analysis.
 # instead of uniques we make a cash pools.
 q = Queue(maxsize=0)
-changes = Queue(maxsize=100000)
+changes = Queue(maxsize=0)
 cache_pool = Queue(maxsize=10000)
 unique = dict()
+# client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
+# client = MongoClient('mongodb://localhost:27017/')
+# db = client["web-map"]
+# db.domains.create_index("url",unique=True)
 
 
-# root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
-#             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
+root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+            "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
 # root_url=["geeksforgeeks.org"]
-
-import csv
-
-with open('seed_url.csv', newline='') as f:
-    reader = csv.reader(f)
-    root_url = ["https://"+row[0] for row in reader]
-# print(data)
-# print(1+"aa")
 for i in root_url:
     q.put(i)
+# import csv
+
+# with open('seed_url.csv', newline='') as f:
+#     reader = csv.reader(f)
+#     root_url = ["https://"+row[0] for row in reader]
+# # print(data)
+# # print(1+"aa")
+# for i in root_url:
+#     q.put(i)
 
 # q.put(root_url[1])
 
@@ -55,16 +61,19 @@ def check(url):
         # print(url)
         if unique.get(domain):
             try:
+                unique[domain]['__0__']+=1
                 unique[domain][host]+= 1
-                changes.put([url, unique[domain][host]])
+                changes.put([domain, unique[domain]['__0__'], "upd"])
                 return False
             except KeyError:
+                unique[domain]['__0__']+=1
                 unique[domain][host] = 1
-                changes.put([url, 1])
+                changes.put([domain, unique[domain]['__0__',],"upd"])
         else:
-            temp_dict = {host: 1}
-            unique[domain] = temp_dict  # new element
-            changes.put([url, 1])
+            unique[domain] = {'__0__':1}
+            # temp_dict = {host: 1}
+            unique[domain][host] = 1  # new element
+            changes.put([domain, unique[domain]['__0__'],"new"])
             return True
 
 
@@ -147,8 +156,8 @@ def all_url(root_url):
 
 
 def print_results():
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(unique)
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(unique)
     # print(len(unique))
     print("queue size :"+str(q.qsize()))
     print("memory :"+str(sys.getsizeof(unique)))
@@ -183,8 +192,8 @@ def indexing():
         elapsed_time = current_time - start_time
         if cache_pool.empty() == False:
             element = cache_pool.get()
-            indexer.htmlparser(element[0], element[1], changes)
-        elif elapsed_time > seconds + 3:
+            indexer.htmlparser(element[0], element[1], changes.get())
+        elif elapsed_time > seconds + 300:
             print_results()
             break
         else:
@@ -202,15 +211,15 @@ def indexing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 10
+num_threads = 100
 threads = []
 for i in range(num_threads):
-    for j in range(30):
-        t1 = Thread(target=main_init)
+    for j in range(1):
+        t1 = Thread(target=indexing)
         # t1.setDaemon(True)
         threads.append(t1)
         t1.start()
-    t2 = Thread(target=indexing)
+    t2 = Thread(target=main_init)
     threads.append(t2)
     t2.setDaemon(True)
     t2.start()
