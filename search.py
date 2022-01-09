@@ -13,13 +13,13 @@ x = db['tags']
 
 import csv
 
-# x.find_one_and_update(
+# x.update_one(
 #    filter= { "word": "play" },
 #    update= { "$addToSet": { "9" : "https://www.youtube.com/" }},
 #    upsert=True,
 # )
-time
-words = ["fast","fourier"]
+# time
+words = ["technology","python","yahoo"]
 z = x.find({ "word": { "$in": words }})
 
 for i in z:

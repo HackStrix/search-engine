@@ -193,6 +193,7 @@ def indexing():
         current_time = time.time()
         elapsed_time = current_time - start_time
         if elapsed_time < seconds + 300:
+            print('indexing Left : %10s %1s'%(str(cache_pool.qsize()),"*"),end="\r\t\t\t\t\t")
             if cache_pool.empty() == False:
                 element = cache_pool.get()
                 indexer.htmlparser(element[0], element[1])
@@ -226,10 +227,10 @@ def changing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 10
+num_threads = 200
 threads = []
 for i in range(num_threads):
-    for j in range(30):
+    for j in range(1):
         t1 = Thread(target=changing)
         t3 = Thread(target=indexing)
         threads.append(t1)

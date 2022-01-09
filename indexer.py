@@ -20,34 +20,37 @@ db.tags.create_index("word", unique=True)
 
 
 def changes(lst):
-    if lst:
-        if lst[2] == "new":
-            try:
-                db["domains"].insert_one({
-                            "url": lst[0],
-                            "count": 1
-                        })
-                # print("n" + "\r")
+    db.domains.update_one(
+        {"url" : lst[0]}, {"$set":{"count":lst[1]}},upsert=True
+    )
+    # if lst:
+    #     if lst[2] == "new":
+    #         try:
+    #             db["domains"].insert_one({
+    #                         "url": lst[0],
+    #                         "count": 1
+    #                     })
+    #             # print("n" + "\r")
                 
-                # if db["domains"].count_documents({"url" : lst[0]}) == 0:
+    #             # if db["domains"].count_documents({"url" : lst[0]}) == 0:
                     
-                # else:
-                #     print("r" + "\r")
+    #             # else:
+    #             #     print("r" + "\r")
                     
-            except Exception as e:
-                db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
-                # print('x',)
-        else:
-            try:
-                 db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
-                #  print("u" + "\r")
-                #  print('y')
-            except Exception as e:
-                # print(e)
-                pass
+    #         except Exception as e:
+    #             db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+    #             # print('x',)
+    #     else:
+    #         try:
+    #              db["domains"].update_one({"url" : lst[0]}, {"$set":{"count":lst[1]}})
+    #             #  print("u" + "\r")
+    #             #  print('y')
+    #         except Exception as e:
+    #             # print(e)
+    #             pass
                 
-    else:
-        pass
+    # else:
+    #     pass
 
 
 def tagparse(data,priority):
@@ -78,7 +81,7 @@ def htmlparser(soup, url):
     
     for i in priorities:
         for key, value in i.items():
-            db.tags.find_one_and_update(
+            db.tags.update_one(
                 filter= { "word": key },
                 update= { "$addToSet": { str(math.ceil(value)) : url}},
                 upsert=True,
