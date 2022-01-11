@@ -14,6 +14,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import indexer
 from threading import Thread
 import pprint
+import changer
 # from numba import jit, cuda
 # import lxml before running
 
@@ -25,11 +26,10 @@ cache_pool = Queue(maxsize=10000)
 unique = dict()
 # client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 # client = MongoClient('mongodb://localhost:27017/')
-# db = client["web-map"]
-# db.domains.create_index("url",unique=True)
 
 
-root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+
+root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.bbc.com/",
             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
 # root_url=["geeksforgeeks.org"]
 for i in root_url:
@@ -62,14 +62,31 @@ def check(url):
         # print(url)
         if unique.get(domain):
             try:
+                unique[domain][host] +=1
                 unique[domain]['__0__']+=1
-                unique[domain][host]+= 1
-                changes.put([domain, unique[domain]['__0__'], "upd"])
+                x = unique[domain]['__0__']
+                if x > 10:
+                    if x%200 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                    elif x<200 and x%20 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                else:
+                    changes.put([domain, unique[domain]['__0__'], "upd"])
+                    # pass
                 return False
             except KeyError:
-                # unique[domain]['__0__']+=1
+                unique[domain]['__0__']+=1
                 unique[domain][host] = 1
-                changes.put([domain, unique[domain]['__0__'],"upd"])
+                x = unique[domain]['__0__']
+                if x > 10:
+                    if x%200 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                    elif x<200 and x%20 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                else:
+                    changes.put([domain, unique[domain]['__0__'], "upd"])
+                    # pass
+                return False
         else:
             unique[domain] = {'__0__':1}
             # temp_dict = {host: 1}
@@ -194,6 +211,7 @@ def indexing():
         elapsed_time = current_time - start_time
         if elapsed_time < seconds + 300:
             if cache_pool.empty() == False:
+                print('indexing Left : %10s %1s'%(str(cache_pool.qsize()),"*"),end="\r\t\t\t\t\t")
                 element = cache_pool.get()
                 indexer.htmlparser(element[0], element[1])
         else:
@@ -205,10 +223,10 @@ def changing():
         current_time = time.time()
         elapsed_time = current_time - start_time
         if elapsed_time <= seconds + 300:
-            print('Changes Left : %10s %1s'%(str(changes.qsize()),"*"),end="\r\t\t\t\t\t")
             if changes.empty() == False:
+                print('Changes Left : %10s %1s'%(str(changes.qsize()),"*"),end="\r\t\t\t\t\t")
                 element = changes.get()
-                indexer.changes(element)
+                changer.changes(element)
         elif elapsed_time > seconds + 300:
             print_results()
             break
@@ -226,10 +244,10 @@ def changing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 10
+num_threads = 200
 threads = []
 for i in range(num_threads):
-    for j in range(30):
+    for j in range(1):
         t1 = Thread(target=changing)
         t3 = Thread(target=indexing)
         threads.append(t1)

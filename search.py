@@ -1,30 +1,33 @@
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 from datetime import datetime as time
-import numpy as np
+# import numpy as np
 start = time.now()
 
 client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 
 db = client["web-map"]
-
+y = db['domains']
 x = db['tags']
 
 
 import csv
 
-# x.find_one_and_update(
+# x.update_one(
 #    filter= { "word": "play" },
 #    update= { "$addToSet": { "9" : "https://www.youtube.com/" }},
 #    upsert=True,
 # )
-time
-words = [ "web"]
-z = x.find({ "word": { "$in": words }})
-
+# time
+words = ["scraping","error"]
+# z = x.find({ "word": { "$in": words }})
+z = y.find({'count': {"$gt":0}})
+count=0
 for i in z:
+    count += 1
     print(i)
 end=time.now()
+print(count)
 print(end-start)
 # with open('seed_url.csv', newline='') as f:
 #     reader = csv.reader(f)
