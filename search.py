@@ -19,7 +19,7 @@ import csv
 #    upsert=True,
 # )
 time
-words = ["fast","fourier"]
+words = [ "web"]
 z = x.find({ "word": { "$in": words }})
 
 for i in z:
