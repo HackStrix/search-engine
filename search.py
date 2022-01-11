@@ -7,7 +7,7 @@ start = time.now()
 client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 
 db = client["web-map"]
-
+y = db['domains']
 x = db['tags']
 
 
@@ -19,12 +19,15 @@ import csv
 #    upsert=True,
 # )
 # time
-words = ["getting","error","crazy","pdf","homepage"]
-z = x.find({ "word": { "$in": words }})
-
+words = ["scraping","error"]
+# z = x.find({ "word": { "$in": words }})
+z = y.find({'count': {"$gt":0}})
+count=0
 for i in z:
+    count += 1
     print(i)
 end=time.now()
+print(count)
 print(end-start)
 # with open('seed_url.csv', newline='') as f:
 #     reader = csv.reader(f)

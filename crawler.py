@@ -62,14 +62,31 @@ def check(url):
         # print(url)
         if unique.get(domain):
             try:
+                unique[domain][host] +=1
                 unique[domain]['__0__']+=1
-                unique[domain][host]+= 1
-                changes.put([domain, unique[domain]['__0__'], "upd"])
+                x = unique[domain]['__0__']
+                if x > 3:
+                    if x%200 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                    elif x%20 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                else:
+                    changes.put([domain, unique[domain]['__0__'], "upd"])
+                    # pass
                 return False
             except KeyError:
-                # unique[domain]['__0__']+=1
+                unique[domain]['__0__']+=1
                 unique[domain][host] = 1
-                changes.put([domain, unique[domain]['__0__'],"upd"])
+                x = unique[domain]['__0__']
+                if x > 3:
+                    if x%200 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                    elif x%20 == 0:
+                        changes.put([domain, unique[domain]['__0__'], "upd"])
+                else:
+                    changes.put([domain, unique[domain]['__0__'], "upd"])
+                    # pass
+                return False
         else:
             unique[domain] = {'__0__':1}
             # temp_dict = {host: 1}

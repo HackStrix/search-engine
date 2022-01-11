@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from queue import Queue
 import math
+import re, string
 
 # for debugging
 from pprint import pprint
@@ -26,16 +27,19 @@ def tagparse(data,priority):
     try:
         for i in data:
             for j in i.text.strip().split(' '):
-                if len(j) >= 4:
-                    if lst_tags.get(j.lower):
-                        x = (lst_tags[j.lower()]/priority)+1
+                # j.translate(None, j.punctuation)
+                j = re.sub('[%s]' % re.escape(string.punctuation), '', j)
+                if len(j) >= 4 and len(j) <=45 :
+                    if lst_tags.get(j.lower()):
+                        # print("hi")
+                        x = (lst_tags[j.lower()]/priority) + 1
                         lst_tags[j.lower()] = x*priority
                     else:
-                        lst_tags[j.lower()] = 1*priority
+                        lst_tags[j.lower()] = priority
                         
                 else:
                     pass
-        
+        # print(lst_tags)
         return lst_tags
 
     except:
@@ -49,14 +53,22 @@ def htmlparser(soup, url):
     
     for i in priorities:
         for key, value in i.items():
+            # print(key)
             db.tags.update_one(
                 filter= { "word": key },
-                update= { "$addToSet": { str(math.ceil(value)) : url}},
+                update= { "$addToSet": { str(math.ceil(value/10)) : url}},
                 upsert=True,
                 )
     # print(priorities)
 
-# r = requests.get("https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/",timeout=(2,5))
-# soup = BeautifulSoup(r.content, 'lxml')
+r = requests.get("https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/",timeout=(2,5))
+soup = BeautifulSoup(r.content, 'lxml')
 
-# htmlparser(soup, "https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/", None, None)
+htmlparser(soup, "https://www.freecodecamp.org/news/how-to-scrape-websites-with-python-and-beautifulsoup-5946935d93fe/")
+
+
+
+
+
+# s = "string. With. Punctuation?" # Sample string 
+# out = re.sub('[%s]' % re.escape(string.punctuation), '', s)
