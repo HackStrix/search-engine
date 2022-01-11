@@ -14,6 +14,7 @@ from multiprocessing.pool import ThreadPool as Pool
 import indexer
 from threading import Thread
 import pprint
+import changer
 # from numba import jit, cuda
 # import lxml before running
 
@@ -25,11 +26,10 @@ cache_pool = Queue(maxsize=10000)
 unique = dict()
 # client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
 # client = MongoClient('mongodb://localhost:27017/')
-# db = client["web-map"]
-# db.domains.create_index("url",unique=True)
 
 
-root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.scrapingbee.com/", "https://www.bbc.com/",
+
+root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.bbc.com/",
             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
 # root_url=["geeksforgeeks.org"]
 for i in root_url:
@@ -209,7 +209,7 @@ def changing():
             print('Changes Left : %10s %1s'%(str(changes.qsize()),"*"),end="\r\t\t\t\t\t")
             if changes.empty() == False:
                 element = changes.get()
-                indexer.changes(element)
+                changer.changes(element)
         elif elapsed_time > seconds + 300:
             print_results()
             break

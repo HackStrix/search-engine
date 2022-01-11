@@ -1,7 +1,7 @@
 from pymongo import MongoClient
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 from datetime import datetime as time
-import numpy as np
+# import numpy as np
 start = time.now()
 
 client = MongoClient('mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority')
@@ -19,7 +19,7 @@ import csv
 #    upsert=True,
 # )
 # time
-words = ["technology","python","yahoo"]
+words = ["getting","error","crazy","pdf","homepage"]
 z = x.find({ "word": { "$in": words }})
 
 for i in z:
