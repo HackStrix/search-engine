@@ -22,6 +22,11 @@ db.tags.create_index("word", unique=True)
 
 
 
+
+
+
+
+
 def tagparse(data,priority):
     lst_tags = {}
     try:
