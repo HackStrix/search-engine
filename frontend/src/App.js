@@ -30,9 +30,18 @@ function App() {
           />
         </Route>
 
-        <Route path="/search">
+        <Route exact path="/search">
           <Results
             search = {query}
+            query = {query}
+            setQuery = {setQuery}
+          />
+        </Route>
+        <Route exact path="/searched">
+          <Results
+            search = {query}
+            query = {query}
+            setQuery = {setQuery}
           />
         </Route>
 
