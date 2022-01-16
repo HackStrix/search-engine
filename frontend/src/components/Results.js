@@ -25,7 +25,7 @@ function Results({search,query,setQuery}) {
             {console.log(post)}
             <ol>
                 {post.map((x)=>{
-                    return <div><l1><a href={x[0]}>{x[2]}</a></l1></div>
+                    return <div><l1><a href={x[0]}>{x[0]}</a></l1></div>
                 })}
             </ol>
         </div>

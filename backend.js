@@ -140,18 +140,18 @@ async function getData (clients, lst, db1, db2, res,pg) {
     }
 
     finalResults = mergeSort(finalResults)
-    let final = []
-    const len = finalResults.length
-    for (let step = 0; step < 20; step++) {
-        // Runs 5 times, with values of step 0 through 4.
-        if ((step*pg) < len) {
-            const val = finalResults[step*pg]
-            const title = await getTitle(val[0])
-            final.push([val[0],val[1],title])
+    // let final = []
+    // const len = finalResults.length
+    // for (let step = 0; step < 20; step++) {
+    //     // Runs 5 times, with values of step 0 through 4.
+    //     if ((step*pg) < len) {
+    //         const val = finalResults[step*pg]
+    //         const title = await getTitle(val[0])
+    //         final.push([val[0],val[1],title])
 
-        }}
+        // }}
     // console.log(getTitle(''))
-    res.send(final)
+    res.send(finalResults)
     // let result =  await arr.map(async (obj)=>{
     //         let links = []
     //         for(var i in obj){
