@@ -23,7 +23,7 @@ export default function Search(){
             <h1 className="text-5xl font-lg font-mono leading-tight text-blue-400">Results</h1>
             {/* <ol> */}
                 {post.map((x)=>{
-                    return <div className="text-white my-4 text-xl"><a href={x[0]}>{x[0]}</a></div>
+                    return <div className="text-white my-4 text-xl" key="1"><a href={x[0]}>{x[0]}</a></div>
                 })}
             {/* </ol> */}
         </div>
