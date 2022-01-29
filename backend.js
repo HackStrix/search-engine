@@ -151,7 +151,8 @@ async function getData (clients, lst, db1, db2, res,pg) {
 
         }}
     // console.log(getTitle(''))
-    res.send(final)
+    let finals = await final;
+    res.send(finals)
     // let result =  await arr.map(async (obj)=>{
     //         let links = []
     //         for(var i in obj){
