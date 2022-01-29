@@ -70,7 +70,7 @@ catch(e){
 }
 
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Origin", "https://vision-frontend.herokuapp.com/"); // update to match the domain you will make the request from
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   })
@@ -151,8 +151,8 @@ async function getData (clients, lst, db1, db2, res,pg) {
 
         }}
     // console.log(getTitle(''))
-    let finals = await final;
-    res.send(finals)
+    // let finals = await final;
+    res.send(final)
     // let result =  await arr.map(async (obj)=>{
     //         let links = []
     //         for(var i in obj){
