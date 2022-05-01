@@ -15,10 +15,9 @@ import indexer
 from threading import Thread
 import pprint
 import changer
-# from numba import jit, cuda
-# import lxml before running
 
-# make a cache pool(temporary storage) which stores the html tags of the website. We keep this so that the indexer can access it and do text analysis.
+# make a cache pool(temporary storage) which stores the html tags of the website. 
+# We keep this so that the indexer can access it and do text analysis.
 # instead of uniques we make a cash pools.
 q = Queue(maxsize=0)
 changes = Queue(maxsize=0)
@@ -31,9 +30,10 @@ unique = dict()
 
 root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.bbc.com/",
             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
-# root_url=["geeksforgeeks.org"]
 for i in root_url:
     q.put(i)
+
+# to use seed url's from csv file
 # import csv
 
 # with open('seed_url.csv', newline='') as f:
@@ -52,14 +52,12 @@ seconds = 120
 words = dict()
 
 
-# @jit(target="cuda")
 def check(url):
     global unique
     if is_valid_url(url):
         link = urlparse(url)
         domain = link.netloc
         host = link.path
-        # print(url)
         if unique.get(domain):
             try:
                 unique[domain][host] +=1
@@ -72,7 +70,6 @@ def check(url):
                         changes.put([domain, unique[domain]['__0__'], "upd"])
                 else:
                     changes.put([domain, unique[domain]['__0__'], "upd"])
-                    # pass
                 return False
             except KeyError:
                 unique[domain]['__0__']+=1
@@ -85,12 +82,10 @@ def check(url):
                         changes.put([domain, unique[domain]['__0__'], "upd"])
                 else:
                     changes.put([domain, unique[domain]['__0__'], "upd"])
-                    # pass
                 return False
         else:
             unique[domain] = {'__0__':1}
-            # temp_dict = {host: 1}
-            unique[domain][host] = 1  # new element
+            unique[domain][host] = 1
             changes.put([domain, unique[domain]['__0__'],"new"])
             return True
 
@@ -114,34 +109,22 @@ def all_url(root_url):
 
     try:
         link = urlparse(root_url)
-        # print("1")
         domain = link.netloc
-        # print("domain")
         scheme = link.scheme
-        # print("scheme")
         combined_str = scheme + '://' + domain + '/robots.txt'
-        # print(combined_str)
         rp = Robot.RobotFileParser()
         rp.set_url(combined_str)
-        # print("hello")
         try:
-            # print("his")
             rp.read()
-            # print("how")
             boolean = rp.can_fetch("*",root_url)
         except:
-            # print("helloo")
             boolean=True
-        # print("4")
-        # print(boolean)
         if boolean:
             r = requests.get(root_url, timeout=(3, 5))
-            # print(r)
             soup = BeautifulSoup(r.content, 'lxml',from_encoding="iso-8859-1")
             cache_pool.put([soup, root_url])
             fill = soup.findAll('a')
             lst = []
-            # print(fill)
             for i in fill:
                 lst.append(i.get('href'))
 
@@ -155,14 +138,12 @@ def all_url(root_url):
                         else:
                             i = root_url + i
                     if check(i):
-                        # print(i)
                         q.put(i)
                     else:
                         pass
                 else:
                     pass
         else: 
-            # print('not allowed')
             pass
     except:
         # print("e")
@@ -176,7 +157,6 @@ def all_url(root_url):
 def print_results():
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(unique)
-    # print(len(unique))
     print("queue size :"+str(q.qsize()))
     print("memory :"+str(sys.getsizeof(unique)))
     print("cachepool :"+str(cache_pool.qsize()))
@@ -234,16 +214,6 @@ def changing():
             pass
             # print("Cache pool empty")
 
-# def pooling():
-#     pool_size = 100  # your "parallelness"
-
-#     pool = Pool(pool_size)
-
-#     for i in range(pool_size):
-#         pool.apply_async(indexing,( ))
-#         pool.apply_async(main_init, ( ))
-    # pool.close()
-    # pool.join()
 num_threads = 200
 threads = []
 for i in range(num_threads):
@@ -258,9 +228,8 @@ for i in range(num_threads):
     t2.setDaemon(True)
     t2.start()
 
-# for x in threads:
-#     x.join()
-#     pp = pprint.PrettyPrinter(indent=4)
-#     pp.pprint(unique)
+
+# pp = pprint.PrettyPrinter(indent=4)
+# pp.pprint(unique)
 # t1.close()
 # t2.close()
