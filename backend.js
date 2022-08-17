@@ -17,75 +17,50 @@ async function getTitle(url) {
   return title;
   };
 
-  
-
-//  function fetchTitle(url, onComplete = null) {
-//     request(url, async function (error, response, body) {
-//         var output = url; // default to URL
-
-//         if (!error && response.statusCode === 200) {
-//             const $ = await cheerio.load(body);
-//             // console.log(`URL = ${url}`);
-//             const title = $("head > title").text().trim();
-//             console.log(title);
-//             return title;
-//             // console.log(`Title = ${title}`);
-//             // output = `[${title}](${url})`;
-//         } else {
-//             console.log(`Error = ${error}, code = ${response.statusCode}`);
-//         }
-
-//         // console.log(`output = ${output} \n\n`);
-//         if (onComplete)
-//             onComplete(output);
-//     });
-// }
-
-
-// const JSON = require('json')
-// const mongoose = require('mongoose'); 
-
 
 require('dotenv').config(); 
 
 const app= express(); 
 const port = process.env.PORT || 5000; 
 
-// const uri = process.env.ATLAS_URI; 
-const uri = "mongodb+srv://admin:password1234$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-// const uri = "mongodb://localhost:27017/"
-const words = ['python']
+const uri = process.env.ATLAS_URI; 
+// const uri = "mongodb+srv://admin:<password>$@web-map.qzzvr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 
+// Create MongoDB client
 const MongoClient = require('mongodb').MongoClient;
-// const { resourceLimits } = require('worker_threads');
 const client = new MongoClient(uri)
 
+// Connecting to Database
 try {
-    console.log('e')
     client.connect()
-    console.log('f')
 }
 catch(e){
+    // Logging any connection error
     console.log(e)
 }
 
+// Specifying cors policy for frontend access.
+// update to match the domain you will make the request from
+// Middleware
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "https://vision-frontend.herokuapp.com"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Origin", "https://vision-frontend.herokuapp.com", "http://vision-frontend.herokuapp.com", "localhost"); 
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   })
 
+
+// The infamous Merge sort by HydroxyHelium
 function merge(left, right) {
-    let arr = []
+    let dbResults = []
     while (left.length && right.length) {
         
         if (left[0][1] > right[0][1]) {
-            arr.push(left.shift())  
+            dbResults.push(left.shift())  
         } else {
-            arr.push(right.shift()) 
+            dbResults.push(right.shift()) 
         }
     }
-    return [ ...arr, ...left, ...right ]
+    return [ ...dbResults, ...left, ...right ]
 }
 
 function mergeSort(array) {
@@ -98,85 +73,78 @@ function mergeSort(array) {
   const left = array.splice(0, half)
   return merge(mergeSort(left),mergeSort(array))
 }
+// Merge Sort END
 
-async function getData (clients, lst, db1, db2, res,pg) {
-    let arr = await db1.find({'word':{'$in': lst}}).toArray()
-    // console.log(arr)
-    let links = {}
-    let resultss = []
-    let domains = {}
+
+
+async function getData(wordList, dbWordTags, dbDomainCount, res, pageNumber) {
+    let dbResults = await dbWordTags.find({'word':{'$in': wordList}}).toArray()
+    let ratedLinks = {}
+    let domainList = []
+    let ratedDomains = {}
     let finalResults = []
-    arr.map(async (obj)=>{
 
-        for(var i in obj){
-            if(!isNaN(i)){
-                // console.log("hi")
+    dbResults.map(async (obj)=>{
 
-                obj[i].map((url)=>{
-                    console.log(url)
-                    links[url] = i
+        for(var index in obj){
+            if(!isNaN(index)){
+                obj[index].map((url)=>{
+                    if (ratedLinks[url])
+                    {
+                    ratedLinks[url] = ratedLinks[url]*index;
+                    }
+                    else{
+                        ratedLinks[url]=index*1;
+                    }
                 }) 
             }
         }})
-    // console.log(links)  
-    for(var url in links){
-        // console.log(url)
+    // extract domain from links ... 
+    for(var url in ratedLinks){
         var host = url.replace('http://','').replace('https://','').split(/[/?#]/)[0];
-        resultss.push(host)
-    }
-    // links.map(async([url, i])=>{
-    //     var host = await url.replace('http://','').replace('https://','').split(/[/?#]/)[0];
-    //     resultss.push(host)
-        
-    // })
-    let result = await db2.find({'url': {'$in':resultss}}).toArray()
-    result.map((obj)=>{
-        domains[obj.url] = obj.count
-    })
-    for(var i in links){
-        // const title = await getTitle(i)
-        var host = i.replace('http://','').replace('https://','').split(/[/?#]/)[0];
-        finalResults.push([i,links[i]*domains[host]])
+        domainList.push(host)
     }
 
+    // Retrieve Domain Count from database
+    let dbResultCount = await dbDomainCount.find({'url': {'$in':domainList}}).toArray()
+    dbResultCount.map((obj)=>{
+        ratedDomains[obj.url] = obj.count
+    })
+    
+    // Assign appropriate Ratings according to the domainCount
+    for(var index in ratedLinks){
+        var host = index.replace('http://','').replace('https://','').split(/[/?#]/)[0];
+        finalResults.push([index, Math.log(ratedLinks[index]*ratedDomains[host])])
+    }
+    // sort all the filtered queries
     finalResults = mergeSort(finalResults)
+    
+    // Only returning 20 results based on pageNumber
     let final = []
     const len = finalResults.length
     for (let step = 0; step < 20; step++) {
-        // Runs 5 times, with values of step 0 through 4.
-        if ((step*pg) < len) {
-            const val = finalResults[step*pg]
-            // const title = await getTitle(val[0])
+        console.log(len,step,pageNumber)
+        if ((step*pageNumber) < len) {
+            const val = finalResults[step*pageNumber]
             final.push([val[0],val[1]])
 
         }}
-    // console.log(getTitle(''))
-    // let finals = await final;
     res.send(final)
-    // let result =  await arr.map(async (obj)=>{
-    //         let links = []
-    //         for(var i in obj){
-    //             if(isNaN(i)){
-    //                 await obj[i].map(async (url)=>{
-    //                     links.push([url, i])
-    //                 }) 
-    //             }
-    //         }
-    //     })
-    // )
 }
 
 app.get('/api/search', async (req, res)=>{
-    const str = req.query.search;
-    const pg = req.query.page;
-    console.log(str)
-    const lst = [str]
-    console.log('here')
-    var dbo = client.db("web-map");
-    console.log("reached here")
-    getData(client, lst, dbo.collection("tags"), dbo.collection("domains"), res,pg)
-    // console.log(result)
-    // res.send(result)
+    // Extracting Parameters from request
+    const searchQuery = req.query.search;
+    const pageNumber = req.query.page;
+
+    // Splitting the search into multiple words.
+    const wordList = searchQuery.split(" ")
+
+    // Connecting to Database "web-map"
+    var dbConn = client.db("web-map");
+
+    // Running the algorithm
+    getData(wordList, dbConn.collection("tags"), dbConn.collection("domains"), res,pageNumber)
 })
 
 
