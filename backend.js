@@ -43,7 +43,7 @@ catch(e){
 // update to match the domain you will make the request from
 // Middleware
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "https://vision-frontend.herokuapp.com", "http://vision-frontend.herokuapp.com", "localhost"); 
+    res.header("Access-Control-Allow-Origin", "https://vision-frontend.herokuapp.com", "http://vision-frontend.herokuapp.com"); 
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
   })
