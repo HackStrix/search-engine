@@ -123,12 +123,12 @@ async function getData(wordList, dbWordTags, dbDomainCount, res, pageNumber) {
     let final = []
     const len = finalResults.length
     for (let step = 0; step < 20; step++) {
-        console.log(len,step,pageNumber)
         if ((step*pageNumber) < len) {
             const val = finalResults[step*pageNumber]
             final.push([val[0],val[1]])
 
         }}
+    console.log(final)
     res.send(final)
 }
 
