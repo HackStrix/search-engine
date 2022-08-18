@@ -31,7 +31,7 @@ unique = dict()
 
 root_url = ["https://en.wikipedia.org/wiki/Fast_Fourier_transform", "https://www.bbc.com/",
             "https://www.facebook.com", "https://www.google.com/search/howsearchworks/crawling-indexing/", "https://ca.yahoo.com/?p=us&guccounter=1"]
-# root_url=["geeksforgeeks.org"]
+root_url=["http://localhost:8000"]
 for i in root_url:
     q.put(i)
 # import csv
@@ -165,8 +165,8 @@ def all_url(root_url):
             # print('not allowed')
             pass
     except:
+        pass
         # print("e")
-        return
 
     
 
@@ -244,7 +244,7 @@ def changing():
 #         pool.apply_async(main_init, ( ))
     # pool.close()
     # pool.join()
-num_threads = 200
+num_threads = 1
 threads = []
 for i in range(num_threads):
     for j in range(1):
